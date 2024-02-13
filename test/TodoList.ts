@@ -53,31 +53,33 @@ describe("TodoList", () => {
     });
   });
 
-  describe("updateTodo", () => {
-    it("Should update a todo item", async () => {
+  describe("updateTodoTitle", () => {
+    it("should update the todo title", async () => {
       await todoList.createTodo("Breakfast", "Cook bread and tea");
-      await todoList.createTodo("Lunch", "Cook rice and beans");
-      const initialTodos = await todoList.getAllTodos();
-      await todoList.updateTodo("Lunch", "Fry yam and sauce", 1);
-      const updatedTodo = await todoList.todos(1);
-      const finalTodos = await todoList.getAllTodos();
-
+      await todoList.updateTodoTitle("Lunch", 0);
+      const updatedTodo = await todoList.todos(0);
       expect(updatedTodo.title).to.equal("Lunch");
-      expect(updatedTodo.description).to.equal("Fry yam and sauce");
-      expect(finalTodos.length).to.equal(initialTodos.length);
+    });
+  });
+  describe("updateTodoDescription", () => {
+    it("should update the todo description", async () => {
+      await todoList.createTodo("Breakfast", "Cook bread and tea");
+      await todoList.updateTodoDescription("Cook Porridge yam", 0);
+      const updatedTodo = await todoList.todos(0);
+      expect(updatedTodo.description).to.equal("Cook Porridge yam");
     });
   });
 
   describe("getspecificTodos", () => {
     it("Should retrieve specific todo items", async () => {
-      await todoList.createTodo("Breakfast", "Drink bread and tea");
+      await todoList.createTodo("Breakfast", "Drink Tea and Bread");
       await todoList.createTodo("Lunch", "Cook rice and beans");
 
       const todo1 = await todoList.getspecificTodos(0);
       const todo2 = await todoList.getspecificTodos(1);
 
       expect(todo1.title).to.equal("Breakfast");
-      expect(todo1.description).to.equal("Drink bread and tea");
+      expect(todo1.description).to.equal("Drink Tea and Bread");
       expect(todo2.title).to.equal("Lunch");
       expect(todo2.description).to.equal("Cook rice and beans");
     });

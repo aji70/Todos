@@ -13,8 +13,9 @@ contract TodoList {
         bool isDone;
     
     }
-
+    //Public variable to hold todo counts
     uint256 public todoCount;
+    // Public todo Array
     Todo[] public todos;
 
 
@@ -31,7 +32,6 @@ contract TodoList {
         todo.isDone = !todo.isDone;
     }
     function deleteTodo(uint256 _id) public {
-        // require(todos.length > (_id-1), "invalid selection");
          todoCount--;
         delete todos[_id]; 
         for (uint256 i = _id; i < todos.length - 1; i++) {
@@ -39,12 +39,17 @@ contract TodoList {
         }
           todos.pop();
     }
-     function updateTodo(string memory _title, string memory _description, uint _id ) public {
-        // require(todos.length > (_id-1), "invalid selection");
-        deleteTodo(_id);
-        Todo memory  newTodo = Todo((_id+1), _title, _description, false);
-        todos.push(newTodo);
-        todoCount++;
+     function updateTodoTitle(string memory _title, uint _id ) public {
+        
+         Todo storage todo = todos[_id];
+         todo.title = _title   ;  
+        
+    }
+    function updateTodoDescription(string memory _description, uint _id ) public {
+        
+         Todo storage todo = todos[_id];
+         todo.description = _description   ;  
+        
     }
 
     function getAllTodos() public view returns (Todo[] memory){
