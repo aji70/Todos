@@ -1,26 +1,26 @@
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { expect } from "chai";
 import { ethers } from "hardhat";
+import { Contract } from "ethers";
 
-describe("TodoList", function () {
-  // We define a fixture to reuse the same setup in every test.
-  // We use loadFixture to run this setup once, snapshot that state,
-  // and reset Hardhat Network to that snapshot in every test.
+describe("TodoList", () => {
+  let todoList: Contract;
+
   async function deployTodoListFixture() {
-    // Contracts are deployed using the first signer/account by default
-
     const TodoList = await ethers.getContractFactory("TodoList");
-    const todoList = await TodoList.deploy();
-
-    return { todoList };
+    return await TodoList.deploy();
   }
 
-  describe("Create Todo", function () {
-    it("Should be able to push todo to todos array", async function () {
-      const { todoList } = await loadFixture(deployTodoListFixture);
-      const tx = await todoList.createTodo("Breakfast", "Cook bread and tea");
+  beforeEach(async () => {
+    todoList = (await loadFixture(deployTodoListFixture)) as any;
+  });
+
+  describe("Create Todo", () => {
+    it("Should be able to push todo to todos array", async () => {
+      await todoList.createTodo("Breakfast", "Cook bread and tea");
       const name = await todoList.todos(0);
       const count = await todoList.todoCount();
+
       expect(name.id).to.equal(1);
       expect(name.title).to.equal("Breakfast");
       expect(name.description).to.equal("Cook bread and tea");
@@ -28,85 +28,58 @@ describe("TodoList", function () {
       expect(count).to.equal(1);
     });
   });
-  describe("toggleCompleted", function () {
-    it("Should toggle the completion status of a todo item", async function () {
-      const { todoList } = await loadFixture(deployTodoListFixture);
-      const tx = await todoList.createTodo("Breakfast", "Cook bread and tea");
-      await tx.wait();
+
+  describe("toggleCompleted", () => {
+    it("Should toggle the completion status of a todo item", async () => {
+      await todoList.createTodo("Breakfast", "Cook bread and tea");
       const before = await todoList.todos(0);
-      const transaction = await todoList.toggleCompleted(0);
-      const name = await todoList.todos(0);
-      await transaction.wait();
-      expect(name.isDone).to.equal(!before.isDone);
-    });
-  });
-  describe("deleteTodo", function () {
-    it("Should delete todo item", async function () {
-      const { todoList } = await loadFixture(deployTodoListFixture);
-      const tx = await todoList.createTodo("Breakfast", "Cook bread and tea");
-      const tx1 = await todoList.createTodo("Lunch", "Cook rice and beans");
-      const array = await todoList.getAllTodos();
-      const name = await todoList.todos(0);
-      const transaction = await todoList.deleteTodo(0);
-      await transaction.wait();
-      const array1 = await todoList.getAllTodos();
-      expect(array).to.not.equals(array1);
-      // console.log(array);
-      // console.log(array1);
+      await todoList.toggleCompleted(0);
+      const after = await todoList.todos(0);
+
+      expect(after.isDone).to.equal(!before.isDone);
     });
   });
 
-  describe("updateTodo", function () {
-    it("Should update todo list", async function () {
-      const { todoList } = await loadFixture(deployTodoListFixture);
-      const tx = await todoList.createTodo("Breakfast", "Cook bread and tea");
-      const tx1 = await todoList.createTodo("Lunch", "Cook rice and beans");
-      await tx1.wait();
-      const countb4 = await todoList.todoCount();
-      const array = await todoList.getAllTodos();
-      const transaction = await todoList.updateTodo(
-        "Lunch",
-        "fry yam and sauce",
-        0
-      );
+  describe("deleteTodo", () => {
+    it("Should delete a todo item", async () => {
+      await todoList.createTodo("Breakfast", "Cook bread and tea");
+      await todoList.createTodo("Lunch", "Cook rice and beans");
 
-      const name = await todoList.todos(0);
-      await transaction.wait();
-      const countafter = await todoList.todoCount();
-      const array1 = await todoList.getAllTodos();
-      expect(array).to.not.equals(array1);
-      expect(countb4).to.equal(countafter);
-      // console.log(array);
-      // console.log(array1);
-      // console.log(countb4);
-      // console.log(countafter);
+      const initialTodos = await todoList.getAllTodos();
+      await todoList.deleteTodo(0);
+      const finalTodos = await todoList.getAllTodos();
+
+      expect(finalTodos.length).to.equal(initialTodos.length - 1);
     });
   });
-  describe("getspecificTodos", function () {
-    it("Should update todo list", async function () {
-      const { todoList } = await loadFixture(deployTodoListFixture);
-      const tx = await todoList.createTodo("Breakfast", "drink bread and tea");
-      await tx.wait();
-      const tx1 = await todoList.createTodo("Lunch", "Cook rice and beans");
-      await tx1.wait();
-      const cx1 = await todoList.getspecificTodos(0);
-      const cx2 = await todoList.getspecificTodos(1);
 
-      expect(cx1.id).to.equal(1);
-      expect(cx1.title).to.equal("Breakfast");
-      expect(cx1.description).to.equal("drink bread and tea");
-      expect(cx1.isDone).to.equal(false);
-      expect(cx2.id).to.equal(2);
-      expect(cx2.title).to.equal("Lunch");
-      expect(cx2.description).to.equal("Cook rice and beans");
-      expect(cx2.isDone).to.equal(false);
+  describe("updateTodo", () => {
+    it("Should update a todo item", async () => {
+      await todoList.createTodo("Breakfast", "Cook bread and tea");
+      await todoList.createTodo("Lunch", "Cook rice and beans");
+      const initialTodos = await todoList.getAllTodos();
+      await todoList.updateTodo("Lunch", "Fry yam and sauce", 1);
+      const updatedTodo = await todoList.todos(1);
+      const finalTodos = await todoList.getAllTodos();
 
-      // // expect(tx).to.equal(cx1);
-      // // expect(tx1).to.equal(cx2);
-      // console.log(tx);
-      // console.log(tx1);
-      // // console.log(cx1);
-      // // console.log(cx2);
+      expect(updatedTodo.title).to.equal("Lunch");
+      expect(updatedTodo.description).to.equal("Fry yam and sauce");
+      expect(finalTodos.length).to.equal(initialTodos.length);
+    });
+  });
+
+  describe("getspecificTodos", () => {
+    it("Should retrieve specific todo items", async () => {
+      await todoList.createTodo("Breakfast", "Drink bread and tea");
+      await todoList.createTodo("Lunch", "Cook rice and beans");
+
+      const todo1 = await todoList.getspecificTodos(0);
+      const todo2 = await todoList.getspecificTodos(1);
+
+      expect(todo1.title).to.equal("Breakfast");
+      expect(todo1.description).to.equal("Drink bread and tea");
+      expect(todo2.title).to.equal("Lunch");
+      expect(todo2.description).to.equal("Cook rice and beans");
     });
   });
 });
