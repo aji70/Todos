@@ -33,7 +33,6 @@ contract TodoList {
     }
     function deleteTodo(uint256 _id) public {
          todoCount--;
-        delete todos[_id]; 
         for (uint256 i = _id; i < todos.length - 1; i++) {
             todos[i] = todos[i + 1];     
         }

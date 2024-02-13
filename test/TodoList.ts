@@ -18,13 +18,13 @@ describe("TodoList", () => {
   describe("Create Todo", () => {
     it("Should be able to push todo to todos array", async () => {
       await todoList.createTodo("Breakfast", "Cook bread and tea");
-      const name = await todoList.todos(0);
+      const todo = await todoList.todos(0);
       const count = await todoList.todoCount();
 
-      expect(name.id).to.equal(1);
-      expect(name.title).to.equal("Breakfast");
-      expect(name.description).to.equal("Cook bread and tea");
-      expect(name.isDone).to.equal(false);
+      expect(todo.id).to.equal(1);
+      expect(todo.title).to.equal("Breakfast");
+      expect(todo.description).to.equal("Cook bread and tea");
+      expect(todo.isDone).to.equal(false);
       expect(count).to.equal(1);
     });
   });
